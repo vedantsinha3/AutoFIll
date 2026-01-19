@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filler — Job Application Autofill</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0b;
+            --bg-secondary: #111113;
+            --bg-tertiary: #1a1a1d;
+            --bg-hover: #222226;
+            --border: #2a2a2e;
+            --text-primary: #fafafa;
+            --text-secondary: #a0a0a5;
+            --text-muted: #6a6a70;
+            --accent: #22c55e;
+            --accent-dim: #16a34a;
+            --accent-glow: rgba(34, 197, 94, 0.15);
+            --warning: #f59e0b;
+            --error: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .app {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 24px 80px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 48px;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .logo-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dim) 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            box-shadow: 0 4px 20px var(--accent-glow);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .tagline {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            font-weight: 300;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 32px;
+            background: var(--bg-secondary);
+            padding: 6px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            animation: fadeIn 0.6s ease-out 0.1s backwards;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px 20px;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tab:hover {
+            color: var(--text-primary);
+            background: var(--bg-tertiary);
+        }
+
+        .tab.active {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .section {
+            display: none;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .form-group {
+            position: relative;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        input::placeholder, textarea::placeholder {
+            color: var(--text-muted);
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+        .save-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 16px 24px;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dim) 100%);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 24px;
+        }
+
+        .save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px var(--accent-glow);
+        }
+
+        .save-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Quick Copy Section */
+        .copy-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .copy-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 20px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .copy-item:hover {
+            background: var(--bg-hover);
+            border-color: var(--accent);
+        }
+
+        .copy-label {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            min-width: 100px;
+        }
+
+        .copy-value {
+            flex: 1;
+            font-size: 1rem;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .copy-value.multiline {
+            white-space: pre-wrap;
+            line-height: 1.5;
+        }
+
+        .copy-btn {
+            padding: 10px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .copy-btn:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+        .copy-btn.copied {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            padding: 14px 24px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--accent);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-weight: 500;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast-icon {
+            color: var(--accent);
+        }
+
+        /* Category Labels in Quick Copy */
+        .copy-category {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 24px 0 12px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 12px;
+        }
+
+        .copy-category:first-child {
+            padding-top: 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .app {
+                padding: 24px 16px 60px;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .copy-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .copy-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <header>
+            <div class="logo">
+                <div class="logo-icon">⚡</div>
+                <h1>Filler</h1>
+            </div>
+            <p class="tagline">Fill out job applications in seconds</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab active" data-tab="copy">Quick Copy</button>
+            <button class="tab" data-tab="edit">Edit Info</button>
+        </div>
+
+        <!-- Quick Copy Section -->
+        <div class="section active" id="copy-section">
+            <div class="card">
+                <div id="copy-content">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Section -->
+        <div class="section" id="edit-section">
+            <!-- Personal Info -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">👤</div>
+                    <h2 class="card-title">Personal Information</h2>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>First Name</label>
+                        <input type="text" id="firstName" placeholder="John">
+                    </div>
+                    <div class="form-group">
+                        <label>Last Name</label>
+                        <input type="text" id="lastName" placeholder="Doe">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="email" placeholder="john@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="tel" id="phone" placeholder="+1 (555) 123-4567">
+                    </div>
+                    <div class="form-group full-width">
+                        <label>Address</label>
+                        <input type="text" id="address" placeholder="123 Main St, City, State 12345">
+                    </div>
+                    <div class="form-group">
+                        <label>City</label>
+                        <input type="text" id="city" placeholder="San Francisco">
+                    </div>
+                    <div class="form-group">
+                        <label>State / Province</label>
+                        <input type="text" id="state" placeholder="California">
+                    </div>
+                    <div class="form-group">
+                        <label>ZIP / Postal Code</label>
+                        <input type="text" id="zip" placeholder="94102">
+                    </div>
+                    <div class="form-group">
+                        <label>Country</label>
+                        <input type="text" id="country" placeholder="United States">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Professional Links -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">🔗</div>
+                    <h2 class="card-title">Professional Links</h2>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>LinkedIn URL</label>
+                        <input type="url" id="linkedin" placeholder="https://linkedin.com/in/johndoe">
+                    </div>
+                    <div class="form-group">
+                        <label>Portfolio / Website</label>
+                        <input type="url" id="portfolio" placeholder="https://johndoe.com">
+                    </div>
+                    <div class="form-group">
+                        <label>GitHub</label>
+                        <input type="url" id="github" placeholder="https://github.com/johndoe">
+                    </div>
+                    <div class="form-group">
+                        <label>Other Link</label>
+                        <input type="url" id="otherLink" placeholder="https://...">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Work Experience -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">💼</div>
+                    <h2 class="card-title">Current / Most Recent Job</h2>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Job Title</label>
+                        <input type="text" id="jobTitle" placeholder="Software Engineer">
+                    </div>
+                    <div class="form-group">
+                        <label>Company</label>
+                        <input type="text" id="company" placeholder="Acme Corp">
+                    </div>
+                    <div class="form-group">
+                        <label>Start Date</label>
+                        <input type="text" id="startDate" placeholder="January 2022">
+                    </div>
+                    <div class="form-group">
+                        <label>End Date</label>
+                        <input type="text" id="endDate" placeholder="Present">
+                    </div>
+                    <div class="form-group full-width">
+                        <label>Job Description / Responsibilities</label>
+                        <textarea id="jobDescription" placeholder="• Led development of...&#10;• Improved performance by...&#10;• Collaborated with..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Education -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">🎓</div>
+                    <h2 class="card-title">Education</h2>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>School / University</label>
+                        <input type="text" id="school" placeholder="Stanford University">
+                    </div>
+                    <div class="form-group">
+                        <label>Degree</label>
+                        <input type="text" id="degree" placeholder="Bachelor of Science">
+                    </div>
+                    <div class="form-group">
+                        <label>Field of Study</label>
+                        <input type="text" id="field" placeholder="Computer Science">
+                    </div>
+                    <div class="form-group">
+                        <label>Graduation Year</label>
+                        <input type="text" id="gradYear" placeholder="2020">
+                    </div>
+                    <div class="form-group">
+                        <label>GPA (Optional)</label>
+                        <input type="text" id="gpa" placeholder="3.8">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Skills & Other -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">⭐</div>
+                    <h2 class="card-title">Skills & Additional</h2>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label>Skills</label>
+                        <textarea id="skills" placeholder="JavaScript, Python, React, Node.js, SQL, AWS..."></textarea>
+                    </div>
+                    <div class="form-group full-width">
+                        <label>Cover Letter Intro</label>
+                        <textarea id="coverLetter" placeholder="I am excited to apply for this position because..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Desired Salary</label>
+                        <input type="text" id="salary" placeholder="$120,000">
+                    </div>
+                    <div class="form-group">
+                        <label>Availability</label>
+                        <input type="text" id="availability" placeholder="2 weeks notice">
+                    </div>
+                    <div class="form-group full-width">
+                        <label>Work Authorization</label>
+                        <input type="text" id="authorization" placeholder="Authorized to work in the United States">
+                    </div>
+                </div>
+            </div>
+
+            <button class="save-btn" onclick="saveData()">
+                <span>💾</span>
+                Save Information
+            </button>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">
+        <span class="toast-icon">✓</span>
+        <span id="toast-message">Saved successfully!</span>
+    </div>
+
+    <script>
+        // Field configuration
+        const fields = {
+            personal: [
+                { id: 'firstName', label: 'First Name' },
+                { id: 'lastName', label: 'Last Name' },
+                { id: 'email', label: 'Email' },
+                { id: 'phone', label: 'Phone' },
+                { id: 'address', label: 'Address' },
+                { id: 'city', label: 'City' },
+                { id: 'state', label: 'State' },
+                { id: 'zip', label: 'ZIP Code' },
+                { id: 'country', label: 'Country' },
+            ],
+            links: [
+                { id: 'linkedin', label: 'LinkedIn' },
+                { id: 'portfolio', label: 'Portfolio' },
+                { id: 'github', label: 'GitHub' },
+                { id: 'otherLink', label: 'Other Link' },
+            ],
+            work: [
+                { id: 'jobTitle', label: 'Job Title' },
+                { id: 'company', label: 'Company' },
+                { id: 'startDate', label: 'Start Date' },
+                { id: 'endDate', label: 'End Date' },
+                { id: 'jobDescription', label: 'Job Description', multiline: true },
+            ],
+            education: [
+                { id: 'school', label: 'School' },
+                { id: 'degree', label: 'Degree' },
+                { id: 'field', label: 'Field of Study' },
+                { id: 'gradYear', label: 'Grad Year' },
+                { id: 'gpa', label: 'GPA' },
+            ],
+            additional: [
+                { id: 'skills', label: 'Skills', multiline: true },
+                { id: 'coverLetter', label: 'Cover Letter', multiline: true },
+                { id: 'salary', label: 'Salary' },
+                { id: 'availability', label: 'Availability' },
+                { id: 'authorization', label: 'Work Auth' },
+            ]
+        };
+
+        const categoryNames = {
+            personal: '👤 Personal',
+            links: '🔗 Links',
+            work: '💼 Work',
+            education: '🎓 Education',
+            additional: '⭐ Additional'
+        };
+
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                
+                tab.classList.add('active');
+                document.getElementById(`${tab.dataset.tab}-section`).classList.add('active');
+            });
+        });
+
+        // Load saved data
+        function loadData() {
+            const data = JSON.parse(localStorage.getItem('fillerData') || '{}');
+            Object.keys(data).forEach(key => {
+                const el = document.getElementById(key);
+                if (el) el.value = data[key];
+            });
+            renderCopySection();
+        }
+
+        // Save data
+        function saveData() {
+            const data = {};
+            Object.values(fields).flat().forEach(field => {
+                const el = document.getElementById(field.id);
+                if (el) data[field.id] = el.value;
+            });
+            localStorage.setItem('fillerData', JSON.stringify(data));
+            showToast('Saved successfully!');
+            renderCopySection();
+        }
+
+        // Auto-save on input
+        document.querySelectorAll('input, textarea').forEach(el => {
+            el.addEventListener('input', () => {
+                clearTimeout(el.saveTimeout);
+                el.saveTimeout = setTimeout(() => {
+                    saveData();
+                }, 1000);
+            });
+        });
+
+        // Render copy section
+        function renderCopySection() {
+            const data = JSON.parse(localStorage.getItem('fillerData') || '{}');
+            const container = document.getElementById('copy-content');
+            
+            // Check if any data exists
+            const hasData = Object.values(data).some(v => v && v.trim());
+            
+            if (!hasData) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📝</div>
+                        <h3>No information saved yet</h3>
+                        <p>Switch to "Edit Info" to add your details</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            
+            Object.entries(fields).forEach(([category, categoryFields]) => {
+                const filledFields = categoryFields.filter(f => data[f.id]?.trim());
+                if (filledFields.length === 0) return;
+
+                html += `<div class="copy-category">${categoryNames[category]}</div>`;
+                html += '<div class="copy-grid">';
+                
+                filledFields.forEach(field => {
+                    const value = data[field.id];
+                    html += `
+                        <div class="copy-item">
+                            <span class="copy-label">${field.label}</span>
+                            <span class="copy-value ${field.multiline ? 'multiline' : ''}">${escapeHtml(value)}</span>
+                            <button class="copy-btn" onclick="copyToClipboard('${field.id}', this)">
+                                <span>📋</span> Copy
+                            </button>
+                        </div>
+                    `;
+                });
+                
+                html += '</div>';
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Copy to clipboard
+        async function copyToClipboard(fieldId, btn) {
+            const data = JSON.parse(localStorage.getItem('fillerData') || '{}');
+            const value = data[fieldId];
+            
+            try {
+                await navigator.clipboard.writeText(value);
+                btn.classList.add('copied');
+                btn.innerHTML = '<span>✓</span> Copied!';
+                
+                setTimeout(() => {
+                    btn.classList.remove('copied');
+                    btn.innerHTML = '<span>📋</span> Copy';
+                }, 1500);
+            } catch (err) {
+                showToast('Failed to copy');
+            }
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            toastMessage.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        // Escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Initialize
+        loadData();
+    </script>
+</body>
+</html>
+

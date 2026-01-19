@@ -336,6 +336,35 @@ const countryAbbreviations = {
     'japan': ['JP', 'JPN']
 };
 
+// Degree/education level mappings
+const degreeAbbreviations = {
+    // High School variations
+    'high school': ['hs', 'high school diploma', 'ged', 'secondary', 'high school graduate'],
+    'high school diploma': ['hs', 'high school', 'ged', 'secondary'],
+    
+    // Associate variations
+    'associate': ['aa', 'as', 'aas', "associate's", "associate's degree", 'associates', 'associates degree', '2 year', '2-year'],
+    "associate's degree": ['aa', 'as', 'associate', 'associates'],
+    
+    // Bachelor variations
+    'bachelor': ['ba', 'bs', 'bsc', 'bfa', 'bba', "bachelor's", "bachelor's degree", 'bachelors', 'bachelors degree', 'undergraduate', '4 year', '4-year', 'bachelor of science', 'bachelor of arts'],
+    "bachelor's degree": ['ba', 'bs', 'bachelor', 'bachelors', 'bsc', 'undergraduate'],
+    'bachelor of science': ['bs', 'bsc', 'bachelor', "bachelor's"],
+    'bachelor of arts': ['ba', 'bachelor', "bachelor's"],
+    
+    // Master variations
+    'master': ['ma', 'ms', 'msc', 'mba', 'mfa', "master's", "master's degree", 'masters', 'masters degree', 'graduate', 'master of science', 'master of arts', 'master of business'],
+    "master's degree": ['ma', 'ms', 'master', 'masters', 'msc', 'mba', 'graduate'],
+    'master of science': ['ms', 'msc', 'master', "master's"],
+    'master of arts': ['ma', 'master', "master's"],
+    'mba': ['master of business', 'master', "master's", 'masters'],
+    
+    // Doctorate variations
+    'doctorate': ['phd', 'ph.d', 'ph.d.', 'doctoral', 'doctor', 'md', 'jd', 'edd', 'doctor of philosophy'],
+    'phd': ['doctorate', 'doctoral', 'ph.d', 'ph.d.', 'doctor of philosophy'],
+    'doctor of philosophy': ['phd', 'ph.d', 'doctorate', 'doctoral']
+};
+
 // Find best matching option in a select element
 function findBestSelectOption(options, value) {
     const valueLower = value.toLowerCase().trim();
@@ -377,6 +406,23 @@ function findBestSelectOption(options, value) {
                 const optText = opt.text.toLowerCase();
                 return optVal === country || optText === country ||
                        abbrs.some(a => optVal === a.toLowerCase() || optText === a.toLowerCase());
+            });
+            if (match) return match;
+        }
+    }
+    
+    // Priority 3b: Check degree/education abbreviations
+    for (const [degree, variations] of Object.entries(degreeAbbreviations)) {
+        // Check if our value matches this degree or any of its variations
+        if (degree === valueLower || variations.some(v => v.toLowerCase() === valueLower)) {
+            // Try to find an option that matches the degree or any variation
+            match = options.find(opt => {
+                const optVal = opt.value.toLowerCase();
+                const optText = opt.text.toLowerCase();
+                // Check if option matches the canonical degree name
+                if (optVal.includes(degree) || optText.includes(degree)) return true;
+                // Check if option matches any variation
+                return variations.some(v => optVal.includes(v.toLowerCase()) || optText.includes(v.toLowerCase()));
             });
             if (match) return match;
         }
